@@ -49,6 +49,10 @@ let zonaForm = "";
 let zonaPass = "";
 let zonaPpal= "";
 
+setTimeout(() => {
+    informarDescuentos();
+}, 2000);
+
 
 switch (pantalla){
     case "ppal":

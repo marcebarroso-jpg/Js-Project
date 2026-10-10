@@ -19,7 +19,6 @@ function vender(carrito, producto, prodCarrito){
             else{
                 prodCarrito.cantStock++;    
             }
-            return true
         }
         else{
             const modalElement = document.getElementById("sinStock");
@@ -430,35 +429,17 @@ function login(e){
     const datos = new FormData(form);
     user = datos.get("usuario")
     pass = datos.get("password")
-    verificarUsuario(user, pass) ?  window.location.href = "admin.html": 
-    modal.innerHTML = `
-     <div class="modal fade" id="modalDenegado" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">      
-                        <div class="modal-header">
-                            <h5 class="modal-title">Acceso denegado</h5>
-                        </div>
-                        <div class="modal-body">
-                            Verifica el usuario o la contraseña
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                                Aceptar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    `;
-    form.appendChild(modal)
-     
+    (verificarUsuario(user, pass)) && (window.location.href = "admin.html");
+      
 }
 
 function detalleVentas(ventas){
     let detalle = document.getElementById("contenedor-ventas-lista");
     let htmlDetalle = "";
+    let salida = "";
     let totalProd = 0;
     let medioDePago = "";
+    try{
     htmlDetalle +=`
         <div class="ventas" id="ventas">
             <div id="detalle-ventas" class="detalle-ventas">
@@ -555,30 +536,60 @@ function detalleVentas(ventas){
                 </div>`;       
         
     });    
-    detalle.innerHTML = htmlDetalle;
-    detalle.innerHTML +=`
+    salida = htmlDetalle;
+    salida +=`
                 </div>
             </div>
         </div>`;
-       
+    } catch (error) {
+        salida = cargaPantallaError("Detalle de ventas", error);
+    
+    }finally{
+        detalle.innerHTML= salida;
+    }
 }  
+
+function cargaPantallaError(pantalla, error) {
+    const errorHtml =  
+        `<div class="Errorventas" id="Errorventas">
+            <div id="detalle-ventas" class="detalle-ventas">
+                <p>Se produjo un error en ${pantalla}. 
+                Por favor, intente nuevamente más tarde.</p>
+            </div>
+        </div>`;
+    return errorHtml;
+}
 
 function resumenVentas(ventas){
     let totalVentas = 0;
     let totalProd = 0;
-    ventas.forEach(venta => {
-        totalVentas += parseFloat(venta.total);
-        venta.productos.forEach(prod => {
-            totalProd += parseInt(prod.cantStock)
-        });
-    });    
+    try {
+        ventas.forEach(venta => {
+            totalVentas += parseFloat(venta.total);
+            venta.productos.forEach(prod => {
+                totalProd += parseInt(prod.cantStock)
+            });
+        });    
 
-    if (ventas.length > 0){
-    document.getElementById("resumen-total").textContent = `$ ${totalVentas}`;
-    document.getElementById("resumen-cantidad").textContent = ventas.length;
-    document.getElementById("resumen-ticket").textContent = `$ ${totalVentas / ventas.length || 0}`;
-    document.getElementById("resumen-productos").textContent = totalProd;
-    detalleVentas(ventas);
-    }   
-        
-}   
+        if (ventas.length > 0){
+        document.getElementById("resumen-total").textContent = `$ ${totalVentas}`;
+        document.getElementById("resumen-cantidad").textContent = ventas.length;
+        document.getElementById("resumen-ticket").textContent = `$ ${totalVentas / ventas.length || 0}`;
+        document.getElementById("resumen-productos").textContent = totalProd;
+        detalleVentas(ventas);
+        }   
+    }
+    catch (error) {
+        const errorContainer = document.getElementById("ventas"); 
+        errorContainer.innerHTML = cargaPantallaError("Resumen de ventas", error);
+    }
+}
+
+
+function informarDescuentos() {
+    const modalElement = document.getElementById("descuentos");
+    if (modalElement) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
+}
