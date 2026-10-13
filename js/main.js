@@ -1,4 +1,4 @@
-if (localStorage.getItem("primerIngreso") === "false"){
+if (localStorage.getItem("primerIngreso") === "false" || !(localStorage.getItem("primerIngreso")) ){
     const productosIniciales= [
         {
             id: 0,
