@@ -19,13 +19,31 @@ function vender(carrito, producto, prodCarrito){
             else{
                 prodCarrito.cantStock++;    
             }
+            Toastify({
+                        text: `${producto.nombre} agregado al carrito`,
+                        duration: 2000,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#198754"
+                        }
+                    }).showToast();
         }
         else{
-            const modalElement = document.getElementById("sinStock");
+            Toastify({
+                        text: "Producto sin stock",
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#dc3545"
+                        }
+                    }).showToast();
+            /*const modalElement = document.getElementById("sinStock");
             if (modalElement) {
                 const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
                 modal.show();
-            }
+            }*/
         }
 }
 
@@ -113,14 +131,17 @@ function crearStockHTML(clase,  producto, pantalla) {
     let funcion = "";
     let btn_clase = "";
     let btn_MasyMenos = "";
+    let paramBoot = "";
     const {id, nombre, cantStock, precio} = producto;
     contenedor.className = `card ${clase}`;
     contenedor.id=`StockProd${producto.id}`;
     pantalla === "admin" ? funcion = "Elminar" : funcion = "Agregar al carrito";
     pantalla === "admin" ? btn_clase = "btn-eliminar" : btn_clase = "btn-carrito";
     if (pantalla === "admin") {
-        btn_MasyMenos = `<a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas">+</a>
-         <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos">-</a>`
+        btn_MasyMenos = `
+         <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas">+</a>
+         <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos">-</a>`;
+ //       paramBoot = `data-bs-toggle="modal" data-bs-target="#delProd"`;
     }
     contenedor.innerHTML = 
         `<div class="card-body">
@@ -129,7 +150,7 @@ function crearStockHTML(clase,  producto, pantalla) {
             <p class="card-text">precio: ${precio}</p>
             ${btn_MasyMenos}
             <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="btn-Carrito"
-            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
+            ${paramBoot}>${funcion}</a>
         </div>`             
     contenedorStock.appendChild(contenedor);
 }
@@ -269,7 +290,7 @@ function checkout(e){
                     <span>Total</span>
                     <span> $ ${totalCarrito}</span>
                 </div>  
-                <button type="button" class="btn btn-primary btn-final" data-bs-toggle="modal" data-bs-target="#modalCompra">
+                <button type="button" class="btn btn-primary btn-final" id="btn-confirm">
                     Confirmar compra
                 </button>
             </aside>
@@ -292,13 +313,17 @@ function checkout(e){
             </div>
         </div>
         `;  
-       // zonaPpal.replaceWith(pantalla);
-
-        const modal = document.getElementById("modalCompra");
-        modal.addEventListener("hidden.bs.modal", () => {
+       // zonaPpal.replaceWith(pantalla);        
+        const btnConfirmar = document.getElementById("btn-confirm");
+        btnConfirmar.addEventListener("click", () => {
             guardarVenta(carrito,datos,totalCarrito);
-            
-            window.location.href = "../index.html";
+            Swal.fire({
+                icon: "success",
+                title: "Compra Confirmada",
+                text: "Su Compra fue Realizada",
+            }).then((result) => {
+                    if (result.isConfirmed) window.location.href = "../index.html";
+                    });
         });
     }   
 }   
@@ -362,13 +387,33 @@ function cargarActiculo(e, productos,contenedor){
 
 //funcion para eliminar  un articulo
 function eliminarArticulo(e, productos){
+    
     const prod = e.target.closest(".cardStock");
     if (e.target.classList.contains("btn-eliminar")) {
-        bajaProducto(productos,obtieneId(e.target.classList[3]))
-        bajaProducto(carrito, obtieneId(e.target.classList[3]))
-        prod.remove();
-        guardarLocalStorage("productos", productos);
-        guardarLocalStorage("carrito", carrito);
+
+        Swal.fire({
+        title: "Seguro?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si!",
+        cancelButtonText: "No"
+        }).then((result) => {
+                            if (result.isConfirmed) {
+                                bajaProducto(productos,obtieneId(e.target.classList[3]))
+                                bajaProducto(carrito, obtieneId(e.target.classList[3]))
+                                
+                                guardarLocalStorage("productos", productos);
+                                guardarLocalStorage("carrito", carrito);
+                                generaPantalla("cardStock", contenedorStock, productos, pantalla);
+                                Swal.fire({
+                                            title: "Borrado!",
+                                            text: "Su producto ha sido borrado.",
+                                            icon: "success"
+                                        });
+                            }
+        });       
     }
     
 };
@@ -384,16 +429,43 @@ function eliminarArticuloxId(productos,id){
 
 //resta un articulo del stock
 function ActualizarArticulo(e){
-    const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))    
-    e.target.classList.contains("btn-mas")   && resultado.cantStock++ ;
-    e.target.classList.contains("btn-menos") && resultado.cantStock--;
-    if (resultado.cantStock <= 0) {
-        eliminarArticuloxId(productos,resultado.id);
+    if (e.target.classList.contains("btn-mas")){
+        const resultado = buscarProd(productos, parseInt(obtieneId(e.target.classList[3]))) 
+     
+        resultado.cantStock++ 
+        generaPantalla("cardStock",contenedorStock, productos);
+    }
+    if(e.target.classList.contains("btn-menos")){    
+        const resultado = buscarProd(productos, parseInt(obtieneId(e.target.classList[3])))           
+        if (resultado.cantStock > 1) {
+            resultado.cantStock--;
+            generaPantalla("cardStock",contenedorStock, productos);  
+        }
+        else    {
+            Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    eliminarArticuloxId(productos,resultado.id);
+                                     generaPantalla("cardStock",contenedorStock, productos);        
+                                     
+                                    Swal.fire({
+                                                title: "Deleted!",
+                                                text: "Your file has been deleted.",
+                                                icon: "success"
+                                            });
+                                }
+            });       
+            
+        }
     } 
-    
-    
-    generaPantalla("cardStock",contenedorStock, productos);        
-    guardarLocalStorage("productos", productos);
+   guardarLocalStorage("productos", productos);
 }
 
 //resta un articulo del carrito
@@ -418,18 +490,31 @@ function obtieneId (clase){
 function verificarUsuario(user, pass){
     const userOK= "Mbarroso"
     const passOK = "1234"
-    return (userOK === user) && (passOK === pass);
+    if ((userOK === user) && (passOK === pass)){
+        return true;
+    }
+    else{
+        return false
+    }
 }
 function login(e){
     e.preventDefault()
     let user = "";
     let pass = "";
     const form = document.getElementById('loginForm');
-    const modal= document.createElement("div");
     const datos = new FormData(form);
     user = datos.get("usuario")
     pass = datos.get("password")
-    (verificarUsuario(user, pass)) && (window.location.href = "admin.html");
+    if (verificarUsuario(user, pass)) {
+        window.location.href = "admin.html"
+    }
+    else{
+        Swal.fire({
+            icon: "error",
+            title: "verifique Usuario y contraseña",
+            text: "acceso denegado"
+});
+    };
       
 }
 
@@ -587,9 +672,17 @@ function resumenVentas(ventas){
 
 
 function informarDescuentos() {
-    const modalElement = document.getElementById("descuentos");
+/*    const modalElement = document.getElementById("descuentos");
     if (modalElement) {
         const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
         modal.show();
-    }
+    }*/
+
+    Toastify({
+                text: `Tenes descuentos disponibles`,
+                duration: 2000,
+                gravity: "top",
+                position: "center",
+                style: { background: "#198754"}
+                }).showToast();
 }
