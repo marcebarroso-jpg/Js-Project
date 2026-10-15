@@ -1,1 +1,6 @@
 Para probar el try en la seccion de visualizacion de resumen de ventas, hay que cambiar el nombre de la key=ventas en el localStorage con eso se logra forzar el error al catch. 
+
+Entrega 10:
+Si se elimina la Key en el localStorage, la aplicacion la autogenera en forma automatica. Ahi se guardan las 
+ventas que se muestran en la pagina admin. 
+El login utiliza el Usuario: Mbarroso y pass = 1234
