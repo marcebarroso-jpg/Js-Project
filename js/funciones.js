@@ -32,7 +32,6 @@ function vender(carrito, producto, prodCarrito){
 //resta un articulo del carrito
 function restarArticulo(e, pantalla){
     if (e.target.classList.contains("btn-menos")) {
-        console.log(e.target.id)
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         if (resultadoCarrito.cantStock > 1){
@@ -52,20 +51,7 @@ function restarArticulo(e, pantalla){
     }   
 }
 
-//resta un articulo del carrito
-function sumarArticulo(e, pantalla){
-    if (e.target.classList.contains("btn-mas")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.id))
-        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.id))
-        vender(carrito, resultado, resultadoCarrito);
-        generaPantalla("carrito", contenedorCarrito, carrito);
-        if (pantalla === "ppal") {
-            generaPantalla("cardStock",contenedorStock, productos);        
-        }
-        guardarLocalStorage("carrito", carrito);
-        guardarLocalStorage("productos", productos);
-    }   
-}
+
 
 
 //elimina articulo del carrito (del array y de la pantalla)
@@ -117,6 +103,7 @@ function crearStockHTML(clase,  producto, pantalla) {
     let btn_clase = "";
     let btn_MasyMenos = "";
     let btn_accion = "";
+    let paramBoots ="";
     const {id, nombre, cantStock, precio} = producto;
     contenedor.className = `card ${clase}`;
     contenedor.id=`StockProd${producto.id}`;
@@ -125,17 +112,17 @@ function crearStockHTML(clase,  producto, pantalla) {
     pantalla === "admin" ? btn_clase = "btn-eliminar" : btn_clase = "btn-carrito";
     if (pantalla === "admin") {
         btn_MasyMenos = `
-         <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas-${parseInt(id)}">+</a>
-         <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos-${parseInt(id)}">-</a>`
+         <a class="btn btn-primary btn-mas" id="btn-mas-${parseInt(id)}">+</a>
+         <a class="btn btn-primary btn-menos" id="btn-menos-${parseInt(id)}">-</a>`
         btn_accion = `
-            <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="${elemntID}-${parseInt(id)}"
-            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
-        `
+            <a class="btn btn-primary ${btn_clase} " id="${elemntID}-${parseInt(id)}"`
+        paramBoots=`
+            data-bs-toggle="modal" data-bs-target="#delProd"`;
     }
     btn_accion = `
-            <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="${elemntID}-${parseInt(id)}"
-            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
-        `
+            <a class="btn btn-primary ${btn_clase} " id="${elemntID}-${parseInt(id)}"
+            ${paramBoots} >${funcion}</a>
+        `;
     contenedor.innerHTML = 
         `<div class="card-body">
             <h5 class="card-title">${nombre}</h5>
@@ -143,7 +130,7 @@ function crearStockHTML(clase,  producto, pantalla) {
             <p class="card-text">precio: ${precio}</p>
             ${btn_MasyMenos}
             ${btn_accion}
-        </div>`             
+        </div>`;              
     contenedorStock.appendChild(contenedor);
 }
 
@@ -172,9 +159,9 @@ function crearCarritoHTML(clase, producto) {
         <p class="card-text">Cant: ${cantStock}</p>
         <p class="card-text">precio: ${precio}</p>
         <p class="card-text" hidden>${id}</p>
-        <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas-${parseInt(id)}">+</a>
-        <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos-${parseInt(id)}">-</a>
-        <a class="btn btn-primary btn-eliminarCarrito id-${parseInt(id)}" id="btn-menos-${parseInt(id)}">Quitar</a>
+        <a class="btn btn-primary btn-mas"  id="btn-mas-${parseInt(id)}">+</a>
+        <a class="btn btn-primary btn-menos"  id="btn-menos-${parseInt(id)}">-</a>
+        <a class="btn btn-primary btn-eliminarCarrito" id="btn-menos-${parseInt(id)}">Quitar</a>
     </div>`;
     contenedorCarrito.appendChild(contenedor);
 }
@@ -395,19 +382,27 @@ function eliminarArticuloxId(productos,id){
     
 };
 
-//resta un articulo del stock
+
 function ActualizarArticulo(e){
-    const resultado = buscarProd(productos, obtieneId(e.target.id))    
-    e.target.classList.contains("btn-mas")   && resultado.cantStock++ ;
-    e.target.classList.contains("btn-menos") && resultado.cantStock--;
-    if (resultado.cantStock <= 0) {
-        eliminarArticuloxId(productos,resultado.id);
-    } 
-    
-    
-    generaPantalla("cardStock",contenedorStock, productos);        
-    guardarLocalStorage("productos", productos);
+    if (e.target.classList.contains("btn-mas")){
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        resultado.cantStock++ 
+        generaPantalla("cardStock",contenedorStock, productos);
+    }
+    if(e.target.classList.contains("btn-menos")){    
+        const resultado = buscarProd(productos, obtieneId(e.target.id))          
+        if (resultado.cantStock > 1) {
+            resultado.cantStock--;
+        }
+        else{
+            eliminarArticuloxId(productos,resultado.id);
+        }
+        generaPantalla("cardStock",contenedorStock, productos);                                 
+    };       
+   guardarLocalStorage("productos", productos);
 }
+
+
 
 //resta un articulo del carrito
 function sumarArticulo(e, pantalla){
@@ -423,6 +418,7 @@ function sumarArticulo(e, pantalla){
         guardarLocalStorage("productos", productos);
     }   
 }
+
 
 function obtieneId (elementId){
     return (parseInt(elementId.split("-")[2]))
