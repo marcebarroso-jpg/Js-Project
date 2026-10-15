@@ -32,8 +32,9 @@ function vender(carrito, producto, prodCarrito){
 //resta un articulo del carrito
 function restarArticulo(e, pantalla){
     if (e.target.classList.contains("btn-menos")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.classList[3]))
+        console.log(e.target.id)
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         if (resultadoCarrito.cantStock > 1){
             resultadoCarrito.cantStock--;
             resultado.cantStock++;
@@ -54,8 +55,8 @@ function restarArticulo(e, pantalla){
 //resta un articulo del carrito
 function sumarArticulo(e, pantalla){
     if (e.target.classList.contains("btn-mas")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.id))
         vender(carrito, resultado, resultadoCarrito);
         generaPantalla("carrito", contenedorCarrito, carrito);
         if (pantalla === "ppal") {
@@ -70,8 +71,8 @@ function sumarArticulo(e, pantalla){
 //elimina articulo del carrito (del array y de la pantalla)
 function eliminarProductoCarrito(e, pantalla){
     if (e.target.classList.contains("btn-eliminarCarrito")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         carrito.splice(carrito.indexOf(resultadoCarrito),1)
         resultado.cantStock = resultado.cantStock + resultadoCarrito.cantStock;
     }
@@ -88,7 +89,7 @@ function eliminarProductoCarrito(e, pantalla){
 //crea un nuevo articulo en el carrito, descuenta de producto
 function sumarCarrito(e){
     if (e.target.classList.contains("btn-carrito")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
         if (!(carrito.some(prod => prod.id === parseInt(resultado.id)))) {
             let articuloVendido = new Producto
             articuloVendido = {...resultado, cantStock: 1}
@@ -108,28 +109,40 @@ function sumarCarrito(e){
 
 
 //Crea dinamicamente la pantalla de prod en stock
+// se incluye el id del producto en el id del boton "+", "-" y "eliminar" o "agregar"
 function crearStockHTML(clase,  producto, pantalla) {
     let contenedor = document.createElement("div");
     let funcion = "";
+    let elemntID = "";
     let btn_clase = "";
     let btn_MasyMenos = "";
+    let btn_accion = "";
     const {id, nombre, cantStock, precio} = producto;
     contenedor.className = `card ${clase}`;
     contenedor.id=`StockProd${producto.id}`;
+    pantalla === "admin" ? elemntID = "btn-Elminar" : elemntID = "btn-carrito";
     pantalla === "admin" ? funcion = "Elminar" : funcion = "Agregar al carrito";
     pantalla === "admin" ? btn_clase = "btn-eliminar" : btn_clase = "btn-carrito";
     if (pantalla === "admin") {
-        btn_MasyMenos = `<a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas">+</a>
-         <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos">-</a>`
+        btn_MasyMenos = `
+         <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas-${parseInt(id)}">+</a>
+         <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos-${parseInt(id)}">-</a>`
+        btn_accion = `
+            <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="${elemntID}-${parseInt(id)}"
+            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
+        `
     }
+    btn_accion = `
+            <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="${elemntID}-${parseInt(id)}"
+            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
+        `
     contenedor.innerHTML = 
         `<div class="card-body">
             <h5 class="card-title">${nombre}</h5>
             <p class="card-text">Cant. Stock: ${cantStock}</p>
             <p class="card-text">precio: ${precio}</p>
             ${btn_MasyMenos}
-            <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="btn-Carrito"
-            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
+            ${btn_accion}
         </div>`             
     contenedorStock.appendChild(contenedor);
 }
@@ -150,7 +163,7 @@ function totalCarrito(totalCarrito){
 function crearCarritoHTML(clase, producto) {
     let contenedor = document.createElement("div");
     const {id, nombre, cantStock, precio} = producto;
-        contenedor.className = `card ${clase}`;
+    contenedor.className = `card ${clase}`;
     contenedor.id=`carrito${id}`;
     
     contenedor.innerHTML = 
@@ -159,9 +172,9 @@ function crearCarritoHTML(clase, producto) {
         <p class="card-text">Cant: ${cantStock}</p>
         <p class="card-text">precio: ${precio}</p>
         <p class="card-text" hidden>${id}</p>
-        <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas">+</a>
-        <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos">-</a>
-        <a class="btn btn-primary btn-eliminarCarrito id-${parseInt(id)}" id="btn-menos">Quitar</a>
+        <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas-${parseInt(id)}">+</a>
+        <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos-${parseInt(id)}">-</a>
+        <a class="btn btn-primary btn-eliminarCarrito id-${parseInt(id)}" id="btn-menos-${parseInt(id)}">Quitar</a>
     </div>`;
     contenedorCarrito.appendChild(contenedor);
 }
@@ -364,8 +377,8 @@ function cargarActiculo(e, productos,contenedor){
 function eliminarArticulo(e, productos){
     const prod = e.target.closest(".cardStock");
     if (e.target.classList.contains("btn-eliminar")) {
-        bajaProducto(productos,obtieneId(e.target.classList[3]))
-        bajaProducto(carrito, obtieneId(e.target.classList[3]))
+        bajaProducto(productos,obtieneId(e.target.id))
+        bajaProducto(carrito, obtieneId(e.target.id))
         prod.remove();
         guardarLocalStorage("productos", productos);
         guardarLocalStorage("carrito", carrito);
@@ -384,7 +397,7 @@ function eliminarArticuloxId(productos,id){
 
 //resta un articulo del stock
 function ActualizarArticulo(e){
-    const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))    
+    const resultado = buscarProd(productos, obtieneId(e.target.id))    
     e.target.classList.contains("btn-mas")   && resultado.cantStock++ ;
     e.target.classList.contains("btn-menos") && resultado.cantStock--;
     if (resultado.cantStock <= 0) {
@@ -399,8 +412,8 @@ function ActualizarArticulo(e){
 //resta un articulo del carrito
 function sumarArticulo(e, pantalla){
     if (e.target.classList.contains("btn-mas")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.id))
         vender(carrito, resultado, resultadoCarrito);
         generaPantalla("carrito", contenedorCarrito, carrito);
         if (pantalla === "ppal") {
@@ -411,8 +424,8 @@ function sumarArticulo(e, pantalla){
     }   
 }
 
-function obtieneId (clase){
-    return (parseInt(clase.split("-")[1]))
+function obtieneId (elementId){
+    return (parseInt(elementId.split("-")[2]))
 }
 
 function verificarUsuario(user, pass){
@@ -422,15 +435,11 @@ function verificarUsuario(user, pass){
 }
 function login(e){
     e.preventDefault()
-    let user = "";
-    let pass = "";
     const form = document.getElementById('loginForm');
-    const modal= document.createElement("div");
     const datos = new FormData(form);
-    user = datos.get("usuario")
-    pass = datos.get("password")
-    (verificarUsuario(user, pass)) && (window.location.href = "admin.html");
-      
+    const user = datos.get("usuario")
+    const pass = datos.get("password")
+    verificarUsuario(user, pass) && (window.location.href = "admin.html");
 }
 
 function detalleVentas(ventas){
