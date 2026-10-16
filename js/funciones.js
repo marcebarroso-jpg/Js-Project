@@ -203,9 +203,85 @@ function generaPantalla (clase,contenedor, productos){
     }
 }
 
+function validarsoloLetras(data){
+    const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    return soloLetras.test(data)
+}
+
+function validarletrasynumeros(data){
+    const regex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,\/-]+$/;
+    return regex.test(data)
+}
+
+function validarEmail(data){
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(data);
+}
+
+
+function validarCheckOut(e){
+     e.preventDefault();
+    const form = document.getElementById('contactoForm');
+    const datos = new FormData(form);
+
+    let validaOK = true;
+
+    const nombre = document.getElementById("nombre");
+    if(!validarsoloLetras(datos.get("nombre").trim())){
+        nombre.classList.add("is-invalid")
+        nombre.classList.remove("is-valid")
+        validaOK = false;
+    }
+    else{
+        nombre.classList.remove("is-invalid")
+        nombre.classList.add("is-valid")
+    };
+    const apellido = document.getElementById("apellido");
+    if(!validarsoloLetras(datos.get("apellido").trim())){
+        apellido.classList.add("is-invalid")
+        apellido.classList.remove("is-valid")
+        validaOK = false;
+    }
+    else{
+        apellido.classList.remove("is-invalid")
+        apellido.classList.add("is-valid")
+    };
+
+    const direccion = document.getElementById("direccion");
+    if(!validarletrasynumeros(datos.get("direccion"))){
+        direccion.classList.add("is-invalid")
+        direccion.classList.remove("is-valid")
+        validaOK = false;
+    }
+    else{
+        direccion.classList.remove("is-invalid")
+        direccion.classList.add("is-valid")
+    };
+    const email = document.getElementById("email");
+    if(!validarEmail(datos.get("email").trim())){
+        email.classList.add("is-invalid")
+        email.classList.remove("is-valid")
+        validaOK=false;
+    }
+    else{
+        email.classList.remove("is-invalid")
+        email.classList.add("is-valid")
+    };
+
+
+    if (validaOK){
+        checkout();
+    }
+    else{ 
+        const modal = new bootstrap.Modal(document.getElementById("errorCampos"));
+        modal.show();
+
+    }
+
+}
 
 // dibuja la pantalla para ofrecer el resumen de la comprar 
-function checkout(e){
+function checkout(){
     //armar pantalla resumen
     // 1. datos de envio y metodo de pago 
     // 2. lista de productos
@@ -217,10 +293,10 @@ function checkout(e){
     let mpago = "";
    
     const pantalla = document.getElementById("ppal-checkout"); 
-    if (e.target.classList.contains("btn-confirmar")) {
 
         const form = document.getElementById('contactoForm');
         const datos = new FormData(form);
+        
         nombre = datos.get("nombre")
         apellido = datos.get("apellido")
         direccion = datos.get("direccion")
@@ -300,7 +376,7 @@ function checkout(e){
             
             window.location.href = "../index.html";
         });
-    }   
+    
 }   
 
 function guardarVenta(carrito, datos, totalCarrito ){
@@ -344,6 +420,11 @@ function bajaProducto(productos, prodId){
     }); 
 }
 
+function validarSoloNumeros(data){
+    const regex = /^[0-9]+$/;
+    return regex.test(data.trim());
+}
+
 //funcion para generar un nuevo articulo
 function cargarActiculo(e, productos,contenedor){
     e.preventDefault();
@@ -355,9 +436,22 @@ function cargarActiculo(e, productos,contenedor){
     articulo = datos.get("articulo")
     stock = datos.get("stock")
     precio = datos.get("precio")
-    altaProducto(articulo, stock, precio)
-    generaPantalla("cardStock", contenedor, productos, pantalla);
-    guardarLocalStorage("productos", productos);
+
+    if(validarsoloLetras(articulo) &&
+       validarSoloNumeros(stock)  &&
+       validarSoloNumeros(precio)){
+
+            altaProducto(articulo, stock, precio)
+            generaPantalla("cardStock", contenedor, productos, pantalla);
+            guardarLocalStorage("productos", productos);
+    }
+    else{
+        const modal = new bootstrap.Modal(document.getElementById("errorCampos"));
+        modal.show();
+
+
+
+    }
 } 
 
 //funcion para eliminar  un articulo
