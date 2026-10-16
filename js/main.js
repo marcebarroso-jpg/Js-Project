@@ -25,9 +25,10 @@ let contenedorStock = "";
 let btnAgregar = "";
 let zonaForm = "";
 let zonaPass = "";
-let zonaPpal = "";
+let zonaPpal= "";
+let btnconfirmar = "";
 
-const pantalla = document.body.id;
+pantalla = document.body.id;
 
 async function iniciarPagina() {
     try {
@@ -36,7 +37,7 @@ async function iniciarPagina() {
 
             productos = await cargarProductos();
             localStorage.setItem("productos",JSON.stringify(productos));
-            localStorage.setItem("carrito",JSON.stringify([]));
+            localStorage.setItem("carrito",JSON.stringify([]));s
             localStorage.setItem("ventas",JSON.stringify([]));
             localStorage.setItem("primerIngreso","true");
         }
@@ -94,7 +95,7 @@ function iniciarPantalla() {
             contenedorCarrito.addEventListener("click", e => sumarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click", e => restarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click", e => eliminarProductoCarrito(e, pantalla));
-            zonaForm.addEventListener("click", checkout);
+            zonaForm.addEventListener('submit', validarCheckOut);
             //zonaPpal.addEventListener("click", checkout);
             break;
 
