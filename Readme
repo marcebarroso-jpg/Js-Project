@@ -1,0 +1,1 @@
+Para probar el try en la seccion de visualizacion de resumen de ventas, hay que cambiar el nombre de la key=ventas en el localStorage con eso se logra forzar el error al catch. 

@@ -48,6 +48,10 @@ let btnAgregar= "";
 let zonaForm = "";
 let zonaPass = "";
 let zonaPpal= "";
+let btnconfirmar = "";
+setTimeout(() => {
+    informarDescuentos();
+}, 2000);
 
 
 switch (pantalla){
@@ -60,7 +64,7 @@ switch (pantalla){
         contenedorCarrito.addEventListener('click',(e) => sumarArticulo(e, pantalla));
         contenedorCarrito.addEventListener('click',(e) => restarArticulo(e, pantalla));
         contenedorCarrito.addEventListener('click',(e) => eliminarProductoCarrito(e, pantalla));
-        contenedorCarrito.addEventListener('click',(e) => checkout(e, pantalla)); 
+
     break;
     case "admin":
         btnAgregar = document.getElementById("btn-agregar");
@@ -80,12 +84,13 @@ switch (pantalla){
         contenedorCarrito = document.getElementById("contenedor-carrito")
         zonaForm = document.getElementById("zona-form")
         zonaPpal= document.getElementById("ppal-checkout");
+        btnconfirmar = document.getElementById("btn-confirmar")
         generaPantalla ("carrito", contenedorCarrito, carrito);     
         contenedorCarrito.addEventListener('click',(e) => sumarArticulo(e, pantalla));
         contenedorCarrito.addEventListener('click',(e) => restarArticulo(e, pantalla));
         contenedorCarrito.addEventListener('click',(e) => eliminarProductoCarrito(e, pantalla));
-        zonaForm.addEventListener('click', checkout);
-        zonaPpal.addEventListener('click', checkout);
+        zonaForm.addEventListener('submit', validarCheckOut);
+      
     break;  
     case "pass":
         zonaPass = document.getElementById("loginForm")

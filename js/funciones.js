@@ -19,7 +19,6 @@ function vender(carrito, producto, prodCarrito){
             else{
                 prodCarrito.cantStock++;    
             }
-            return true
         }
         else{
             const modalElement = document.getElementById("sinStock");
@@ -33,8 +32,8 @@ function vender(carrito, producto, prodCarrito){
 //resta un articulo del carrito
 function restarArticulo(e, pantalla){
     if (e.target.classList.contains("btn-menos")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         if (resultadoCarrito.cantStock > 1){
             resultadoCarrito.cantStock--;
             resultado.cantStock++;
@@ -52,27 +51,14 @@ function restarArticulo(e, pantalla){
     }   
 }
 
-//resta un articulo del carrito
-function sumarArticulo(e, pantalla){
-    if (e.target.classList.contains("btn-mas")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.classList[3]))
-        vender(carrito, resultado, resultadoCarrito);
-        generaPantalla("carrito", contenedorCarrito, carrito);
-        if (pantalla === "ppal") {
-            generaPantalla("cardStock",contenedorStock, productos);        
-        }
-        guardarLocalStorage("carrito", carrito);
-        guardarLocalStorage("productos", productos);
-    }   
-}
+
 
 
 //elimina articulo del carrito (del array y de la pantalla)
 function eliminarProductoCarrito(e, pantalla){
     if (e.target.classList.contains("btn-eliminarCarrito")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         carrito.splice(carrito.indexOf(resultadoCarrito),1)
         resultado.cantStock = resultado.cantStock + resultadoCarrito.cantStock;
     }
@@ -89,7 +75,7 @@ function eliminarProductoCarrito(e, pantalla){
 //crea un nuevo articulo en el carrito, descuenta de producto
 function sumarCarrito(e){
     if (e.target.classList.contains("btn-carrito")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
         if (!(carrito.some(prod => prod.id === parseInt(resultado.id)))) {
             let articuloVendido = new Producto
             articuloVendido = {...resultado, cantStock: 1}
@@ -109,29 +95,42 @@ function sumarCarrito(e){
 
 
 //Crea dinamicamente la pantalla de prod en stock
+// se incluye el id del producto en el id del boton "+", "-" y "eliminar" o "agregar"
 function crearStockHTML(clase,  producto, pantalla) {
     let contenedor = document.createElement("div");
     let funcion = "";
+    let elemntID = "";
     let btn_clase = "";
     let btn_MasyMenos = "";
+    let btn_accion = "";
+    let paramBoots ="";
     const {id, nombre, cantStock, precio} = producto;
     contenedor.className = `card ${clase}`;
     contenedor.id=`StockProd${producto.id}`;
+    pantalla === "admin" ? elemntID = "btn-Elminar" : elemntID = "btn-carrito";
     pantalla === "admin" ? funcion = "Elminar" : funcion = "Agregar al carrito";
     pantalla === "admin" ? btn_clase = "btn-eliminar" : btn_clase = "btn-carrito";
     if (pantalla === "admin") {
-        btn_MasyMenos = `<a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas">+</a>
-         <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos">-</a>`
+        btn_MasyMenos = `
+         <a class="btn btn-primary btn-mas" id="btn-mas-${parseInt(id)}">+</a>
+         <a class="btn btn-primary btn-menos" id="btn-menos-${parseInt(id)}">-</a>`
+        btn_accion = `
+            <a class="btn btn-primary ${btn_clase} " id="${elemntID}-${parseInt(id)}"`
+        paramBoots=`
+            data-bs-toggle="modal" data-bs-target="#delProd"`;
     }
+    btn_accion = `
+            <a class="btn btn-primary ${btn_clase} " id="${elemntID}-${parseInt(id)}"
+            ${paramBoots} >${funcion}</a>
+        `;
     contenedor.innerHTML = 
         `<div class="card-body">
             <h5 class="card-title">${nombre}</h5>
             <p class="card-text">Cant. Stock: ${cantStock}</p>
             <p class="card-text">precio: ${precio}</p>
             ${btn_MasyMenos}
-            <a class="btn btn-primary ${btn_clase} id-${parseInt(id)}" id="btn-Carrito"
-            data-bs-toggle="modal" data-bs-target="#delProd">${funcion}</a>
-        </div>`             
+            ${btn_accion}
+        </div>`;              
     contenedorStock.appendChild(contenedor);
 }
 
@@ -151,7 +150,7 @@ function totalCarrito(totalCarrito){
 function crearCarritoHTML(clase, producto) {
     let contenedor = document.createElement("div");
     const {id, nombre, cantStock, precio} = producto;
-        contenedor.className = `card ${clase}`;
+    contenedor.className = `card ${clase}`;
     contenedor.id=`carrito${id}`;
     
     contenedor.innerHTML = 
@@ -160,9 +159,9 @@ function crearCarritoHTML(clase, producto) {
         <p class="card-text">Cant: ${cantStock}</p>
         <p class="card-text">precio: ${precio}</p>
         <p class="card-text" hidden>${id}</p>
-        <a class="btn btn-primary btn-mas id-${parseInt(id)}"  id="btn-mas">+</a>
-        <a class="btn btn-primary btn-menos id-${parseInt(id)}"  id="btn-menos">-</a>
-        <a class="btn btn-primary btn-eliminarCarrito id-${parseInt(id)}" id="btn-menos">Quitar</a>
+        <a class="btn btn-primary btn-mas"  id="btn-mas-${parseInt(id)}">+</a>
+        <a class="btn btn-primary btn-menos"  id="btn-menos-${parseInt(id)}">-</a>
+        <a class="btn btn-primary btn-eliminarCarrito" id="btn-menos-${parseInt(id)}">Quitar</a>
     </div>`;
     contenedorCarrito.appendChild(contenedor);
 }
@@ -204,9 +203,85 @@ function generaPantalla (clase,contenedor, productos){
     }
 }
 
+function validarsoloLetras(data){
+    const soloLetras = /^[a-zA-ZáéíóúÁÉÍÓÚñÑ\s]+$/;
+    return soloLetras.test(data)
+}
+
+function validarletrasynumeros(data){
+    const regex = /^[a-zA-Z0-9áéíóúÁÉÍÓÚñÑ\s.,\/-]+$/;
+    return regex.test(data)
+}
+
+function validarEmail(data){
+    const regex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+    return regex.test(data);
+}
+
+
+function validarCheckOut(e){
+     e.preventDefault();
+    const form = document.getElementById('contactoForm');
+    const datos = new FormData(form);
+
+    let validaOK = true;
+
+    const nombre = document.getElementById("nombre");
+    if(!validarsoloLetras(datos.get("nombre").trim())){
+        nombre.classList.add("is-invalid")
+        nombre.classList.remove("is-valid")
+        validaOK = false;
+    }
+    else{
+        nombre.classList.remove("is-invalid")
+        nombre.classList.add("is-valid")
+    };
+    const apellido = document.getElementById("apellido");
+    if(!validarsoloLetras(datos.get("apellido").trim())){
+        apellido.classList.add("is-invalid")
+        apellido.classList.remove("is-valid")
+        validaOK = false;
+    }
+    else{
+        apellido.classList.remove("is-invalid")
+        apellido.classList.add("is-valid")
+    };
+
+    const direccion = document.getElementById("direccion");
+    if(!validarletrasynumeros(datos.get("direccion"))){
+        direccion.classList.add("is-invalid")
+        direccion.classList.remove("is-valid")
+        validaOK = false;
+    }
+    else{
+        direccion.classList.remove("is-invalid")
+        direccion.classList.add("is-valid")
+    };
+    const email = document.getElementById("email");
+    if(!validarEmail(datos.get("email").trim())){
+        email.classList.add("is-invalid")
+        email.classList.remove("is-valid")
+        validaOK=false;
+    }
+    else{
+        email.classList.remove("is-invalid")
+        email.classList.add("is-valid")
+    };
+
+
+    if (validaOK){
+        checkout();
+    }
+    else{ 
+        const modal = new bootstrap.Modal(document.getElementById("errorCampos"));
+        modal.show();
+
+    }
+
+}
 
 // dibuja la pantalla para ofrecer el resumen de la comprar 
-function checkout(e){
+function checkout(){
     //armar pantalla resumen
     // 1. datos de envio y metodo de pago 
     // 2. lista de productos
@@ -218,10 +293,10 @@ function checkout(e){
     let mpago = "";
    
     const pantalla = document.getElementById("ppal-checkout"); 
-    if (e.target.classList.contains("btn-confirmar")) {
 
         const form = document.getElementById('contactoForm');
         const datos = new FormData(form);
+        
         nombre = datos.get("nombre")
         apellido = datos.get("apellido")
         direccion = datos.get("direccion")
@@ -301,7 +376,7 @@ function checkout(e){
             
             window.location.href = "../index.html";
         });
-    }   
+    
 }   
 
 function guardarVenta(carrito, datos, totalCarrito ){
@@ -345,6 +420,11 @@ function bajaProducto(productos, prodId){
     }); 
 }
 
+function validarSoloNumeros(data){
+    const regex = /^[0-9]+$/;
+    return regex.test(data.trim());
+}
+
 //funcion para generar un nuevo articulo
 function cargarActiculo(e, productos,contenedor){
     e.preventDefault();
@@ -356,17 +436,30 @@ function cargarActiculo(e, productos,contenedor){
     articulo = datos.get("articulo")
     stock = datos.get("stock")
     precio = datos.get("precio")
-    altaProducto(articulo, stock, precio)
-    generaPantalla("cardStock", contenedor, productos, pantalla);
-    guardarLocalStorage("productos", productos);
+
+    if(validarsoloLetras(articulo) &&
+       validarSoloNumeros(stock)  &&
+       validarSoloNumeros(precio)){
+
+            altaProducto(articulo, stock, precio)
+            generaPantalla("cardStock", contenedor, productos, pantalla);
+            guardarLocalStorage("productos", productos);
+    }
+    else{
+        const modal = new bootstrap.Modal(document.getElementById("errorCampos"));
+        modal.show();
+
+
+
+    }
 } 
 
 //funcion para eliminar  un articulo
 function eliminarArticulo(e, productos){
     const prod = e.target.closest(".cardStock");
     if (e.target.classList.contains("btn-eliminar")) {
-        bajaProducto(productos,obtieneId(e.target.classList[3]))
-        bajaProducto(carrito, obtieneId(e.target.classList[3]))
+        bajaProducto(productos,obtieneId(e.target.id))
+        bajaProducto(carrito, obtieneId(e.target.id))
         prod.remove();
         guardarLocalStorage("productos", productos);
         guardarLocalStorage("carrito", carrito);
@@ -383,25 +476,33 @@ function eliminarArticuloxId(productos,id){
     
 };
 
-//resta un articulo del stock
+
 function ActualizarArticulo(e){
-    const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))    
-    e.target.classList.contains("btn-mas")   && resultado.cantStock++ ;
-    e.target.classList.contains("btn-menos") && resultado.cantStock--;
-    if (resultado.cantStock <= 0) {
-        eliminarArticuloxId(productos,resultado.id);
-    } 
-    
-    
-    generaPantalla("cardStock",contenedorStock, productos);        
-    guardarLocalStorage("productos", productos);
+    if (e.target.classList.contains("btn-mas")){
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        resultado.cantStock++ 
+        generaPantalla("cardStock",contenedorStock, productos);
+    }
+    if(e.target.classList.contains("btn-menos")){    
+        const resultado = buscarProd(productos, obtieneId(e.target.id))          
+        if (resultado.cantStock > 1) {
+            resultado.cantStock--;
+        }
+        else{
+            eliminarArticuloxId(productos,resultado.id);
+        }
+        generaPantalla("cardStock",contenedorStock, productos);                                 
+    };       
+   guardarLocalStorage("productos", productos);
 }
+
+
 
 //resta un articulo del carrito
 function sumarArticulo(e, pantalla){
     if (e.target.classList.contains("btn-mas")) {
-        const resultado = buscarProd(productos, obtieneId(e.target.classList[3]))
-        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.classList[3]))
+        const resultado = buscarProd(productos, obtieneId(e.target.id))
+        const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.id))
         vender(carrito, resultado, resultadoCarrito);
         generaPantalla("carrito", contenedorCarrito, carrito);
         if (pantalla === "ppal") {
@@ -412,8 +513,9 @@ function sumarArticulo(e, pantalla){
     }   
 }
 
-function obtieneId (clase){
-    return (parseInt(clase.split("-")[1]))
+
+function obtieneId (elementId){
+    return (parseInt(elementId.split("-")[2]))
 }
 
 function verificarUsuario(user, pass){
@@ -423,42 +525,20 @@ function verificarUsuario(user, pass){
 }
 function login(e){
     e.preventDefault()
-    let user = "";
-    let pass = "";
     const form = document.getElementById('loginForm');
-    const modal= document.createElement("div");
     const datos = new FormData(form);
-    user = datos.get("usuario")
-    pass = datos.get("password")
-    verificarUsuario(user, pass) ?  window.location.href = "admin.html": 
-    modal.innerHTML = `
-     <div class="modal fade" id="modalDenegado" tabindex="-1">
-                <div class="modal-dialog">
-                    <div class="modal-content">      
-                        <div class="modal-header">
-                            <h5 class="modal-title">Acceso denegado</h5>
-                        </div>
-                        <div class="modal-body">
-                            Verifica el usuario o la contraseña
-                        </div>
-                        <div class="modal-footer">
-                            <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                                Aceptar
-                            </button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-    `;
-    form.appendChild(modal)
-     
+    const user = datos.get("usuario")
+    const pass = datos.get("password")
+    verificarUsuario(user, pass) && (window.location.href = "admin.html");
 }
 
 function detalleVentas(ventas){
     let detalle = document.getElementById("contenedor-ventas-lista");
     let htmlDetalle = "";
+    let salida = "";
     let totalProd = 0;
     let medioDePago = "";
+    try{
     htmlDetalle +=`
         <div class="ventas" id="ventas">
             <div id="detalle-ventas" class="detalle-ventas">
@@ -555,30 +635,60 @@ function detalleVentas(ventas){
                 </div>`;       
         
     });    
-    detalle.innerHTML = htmlDetalle;
-    detalle.innerHTML +=`
+    salida = htmlDetalle;
+    salida +=`
                 </div>
             </div>
         </div>`;
-       
+    } catch (error) {
+        salida = cargaPantallaError("Detalle de ventas", error);
+    
+    }finally{
+        detalle.innerHTML= salida;
+    }
 }  
+
+function cargaPantallaError(pantalla, error) {
+    const errorHtml =  
+        `<div class="Errorventas" id="Errorventas">
+            <div id="detalle-ventas" class="detalle-ventas">
+                <p>Se produjo un error en ${pantalla}. 
+                Por favor, intente nuevamente más tarde.</p>
+            </div>
+        </div>`;
+    return errorHtml;
+}
 
 function resumenVentas(ventas){
     let totalVentas = 0;
     let totalProd = 0;
-    ventas.forEach(venta => {
-        totalVentas += parseFloat(venta.total);
-        venta.productos.forEach(prod => {
-            totalProd += parseInt(prod.cantStock)
-        });
-    });    
+    try {
+        ventas.forEach(venta => {
+            totalVentas += parseFloat(venta.total);
+            venta.productos.forEach(prod => {
+                totalProd += parseInt(prod.cantStock)
+            });
+        });    
 
-    if (ventas.length > 0){
-    document.getElementById("resumen-total").textContent = `$ ${totalVentas}`;
-    document.getElementById("resumen-cantidad").textContent = ventas.length;
-    document.getElementById("resumen-ticket").textContent = `$ ${totalVentas / ventas.length || 0}`;
-    document.getElementById("resumen-productos").textContent = totalProd;
-    detalleVentas(ventas);
-    }   
-        
-}   
+        if (ventas.length > 0){
+        document.getElementById("resumen-total").textContent = `$ ${totalVentas}`;
+        document.getElementById("resumen-cantidad").textContent = ventas.length;
+        document.getElementById("resumen-ticket").textContent = `$ ${totalVentas / ventas.length || 0}`;
+        document.getElementById("resumen-productos").textContent = totalProd;
+        detalleVentas(ventas);
+        }   
+    }
+    catch (error) {
+        const errorContainer = document.getElementById("ventas"); 
+        errorContainer.innerHTML = cargaPantallaError("Resumen de ventas", error);
+    }
+}
+
+
+function informarDescuentos() {
+    const modalElement = document.getElementById("descuentos");
+    if (modalElement) {
+        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
+        modal.show();
+    }
+}
