@@ -19,19 +19,37 @@ function vender(carrito, producto, prodCarrito){
             else{
                 prodCarrito.cantStock++;    
             }
+            Toastify({
+                        text: `${producto.nombre} agregado al carrito`,
+                        duration: 2000,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#198754"
+                        }
+                    }).showToast();
         }
         else{
-            const modalElement = document.getElementById("sinStock");
+            Toastify({
+                        text: "Producto sin stock",
+                        duration: 3000,
+                        gravity: "top",
+                        position: "right",
+                        style: {
+                            background: "#dc3545"
+                        }
+                    }).showToast();
+            /*const modalElement = document.getElementById("sinStock");
             if (modalElement) {
                 const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
                 modal.show();
-            }
+            }*/
         }
 }
 
 //resta un articulo del carrito
 function restarArticulo(e, pantalla){
-    if (e.target.classList.contains("btn-menos")) {
+    if (obtieneTipoBoton(e.target.id) === "btn-menos") { 
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         if (resultadoCarrito.cantStock > 1){
@@ -56,7 +74,7 @@ function restarArticulo(e, pantalla){
 
 //elimina articulo del carrito (del array y de la pantalla)
 function eliminarProductoCarrito(e, pantalla){
-    if (e.target.classList.contains("btn-eliminarCarrito")) {
+    if (obtieneTipoBoton(e.target.id) === "btn-eliminarCarrito") {
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         const resultadoCarrito = buscarProd(carrito, obtieneId(e.target.id))
         carrito.splice(carrito.indexOf(resultadoCarrito),1)
@@ -74,7 +92,7 @@ function eliminarProductoCarrito(e, pantalla){
 
 //crea un nuevo articulo en el carrito, descuenta de producto
 function sumarCarrito(e){
-    if (e.target.classList.contains("btn-carrito")) {
+    if (obtieneTipoBoton(e.target.id) === "btn-carrito") {
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         if (!(carrito.some(prod => prod.id === parseInt(resultado.id)))) {
             let articuloVendido = new Producto
@@ -112,8 +130,8 @@ function crearStockHTML(clase,  producto, pantalla) {
     pantalla === "admin" ? btn_clase = "btn-eliminar" : btn_clase = "btn-carrito";
     if (pantalla === "admin") {
         btn_MasyMenos = `
-         <a class="btn btn-primary btn-mas" id="btn-mas-${parseInt(id)}">+</a>
-         <a class="btn btn-primary btn-menos" id="btn-menos-${parseInt(id)}">-</a>`
+        <a class="btn btn-primary btn-mas" id="btn-mas-${parseInt(id)}">+</a>
+        <a class="btn btn-primary btn-menos" id="btn-menos-${parseInt(id)}">-</a>`
         btn_accion = `
             <a class="btn btn-primary ${btn_clase} " id="${elemntID}-${parseInt(id)}"`
         paramBoots=`
@@ -161,7 +179,7 @@ function crearCarritoHTML(clase, producto) {
         <p class="card-text" hidden>${id}</p>
         <a class="btn btn-primary btn-mas"  id="btn-mas-${parseInt(id)}">+</a>
         <a class="btn btn-primary btn-menos"  id="btn-menos-${parseInt(id)}">-</a>
-        <a class="btn btn-primary btn-eliminarCarrito" id="btn-menos-${parseInt(id)}">Quitar</a>
+        <a class="btn btn-primary btn-eliminarCarrito" id="btn-eliminarCarrito-${parseInt(id)}">Quitar</a>
     </div>`;
     contenedorCarrito.appendChild(contenedor);
 }
@@ -174,7 +192,7 @@ function generarCheckout (contenedor){
     contenedorFooter.className = 'Checkout';
     contenedorFooter.id=`checkout`;
     contenedorFooter.innerHTML = 
-    `<a class="btn btn-primary btn-Checkout" href="./pages/checkout.html">Finalizar Comprar</a>`;
+    `<a class="btn btn-primary btn-Checkout" id="btn-checkout" href="./pages/checkout.html">Finalizar Comprar</a>`;
     contenedor.appendChild(contenedorFooter);
 }
 
@@ -220,7 +238,7 @@ function validarEmail(data){
 
 
 function validarCheckOut(e){
-     e.preventDefault();
+    e.preventDefault();
     const form = document.getElementById('contactoForm');
     const datos = new FormData(form);
 
@@ -345,7 +363,7 @@ function checkout(){
                     <span>Total</span>
                     <span> $ ${totalCarrito}</span>
                 </div>  
-                <button type="button" class="btn btn-primary btn-final" data-bs-toggle="modal" data-bs-target="#modalCompra">
+                <button type="button" class="btn btn-primary btn-final" id="btn-confirm">
                     Confirmar compra
                 </button>
             </aside>
@@ -368,13 +386,17 @@ function checkout(){
             </div>
         </div>
         `;  
-       // zonaPpal.replaceWith(pantalla);
-
-        const modal = document.getElementById("modalCompra");
-        modal.addEventListener("hidden.bs.modal", () => {
+       // zonaPpal.replaceWith(pantalla);        
+        const btnConfirmar = document.getElementById("btn-confirm");
+        btnConfirmar.addEventListener("click", () => {
             guardarVenta(carrito,datos,totalCarrito);
-            
-            window.location.href = "../index.html";
+            Swal.fire({
+                icon: "success",
+                title: "Compra Confirmada",
+                text: "Su Compra fue Realizada",
+            }).then((result) => {
+                    if (result.isConfirmed) window.location.href = "../index.html";
+                    });
         });
     
 }   
@@ -437,9 +459,9 @@ function cargarActiculo(e, productos,contenedor){
     stock = datos.get("stock")
     precio = datos.get("precio")
 
-    if(validarsoloLetras(articulo) &&
-       validarSoloNumeros(stock)  &&
-       validarSoloNumeros(precio)){
+    if( validarsoloLetras(articulo) &&
+        validarSoloNumeros(stock)  &&
+        validarSoloNumeros(precio)){
 
             altaProducto(articulo, stock, precio)
             generaPantalla("cardStock", contenedor, productos, pantalla);
@@ -448,21 +470,37 @@ function cargarActiculo(e, productos,contenedor){
     else{
         const modal = new bootstrap.Modal(document.getElementById("errorCampos"));
         modal.show();
-
-
-
     }
 } 
 
 //funcion para eliminar  un articulo
 function eliminarArticulo(e, productos){
-    const prod = e.target.closest(".cardStock");
-    if (e.target.classList.contains("btn-eliminar")) {
-        bajaProducto(productos,obtieneId(e.target.id))
-        bajaProducto(carrito, obtieneId(e.target.id))
-        prod.remove();
-        guardarLocalStorage("productos", productos);
-        guardarLocalStorage("carrito", carrito);
+    
+    //const prod = e.target.closest(".cardStock");
+    if (obtieneTipoBoton(e.target.id) === "btn-Elminar") {
+        Swal.fire({
+        title: "Seguro?",
+        icon: "warning",
+        showCancelButton: true,
+        confirmButtonColor: "#3085d6",
+        cancelButtonColor: "#d33",
+        confirmButtonText: "Si!",
+        cancelButtonText: "No"
+        }).then((result) => {
+                            if (result.isConfirmed) {
+                                bajaProducto(productos,obtieneId(e.target.id))
+                                bajaProducto(carrito, obtieneId(e.target.id))
+                                
+                                guardarLocalStorage("productos", productos);
+                                guardarLocalStorage("carrito", carrito);
+                                generaPantalla("cardStock", contenedorStock, productos, pantalla);
+                                Swal.fire({
+                                            title: "Borrado!",
+                                            text: "Su producto ha sido borrado.",
+                                            icon: "success"
+                                        });
+                            }
+        });       
     }
     
 };
@@ -478,29 +516,48 @@ function eliminarArticuloxId(productos,id){
 
 
 function ActualizarArticulo(e){
-    if (e.target.classList.contains("btn-mas")){
+    if (obtieneTipoBoton(e.target.id) === "btn-mas"){
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         resultado.cantStock++ 
         generaPantalla("cardStock",contenedorStock, productos);
     }
-    if(e.target.classList.contains("btn-menos")){    
-        const resultado = buscarProd(productos, obtieneId(e.target.id))          
+    if(obtieneTipoBoton(e.target.id) === "btn-menos"){    
+        const resultado = buscarProd(productos, parseInt(obtieneId(e.target.id)))           
         if (resultado.cantStock > 1) {
             resultado.cantStock--;
+            generaPantalla("cardStock",contenedorStock, productos);  
         }
-        else{
-            eliminarArticuloxId(productos,resultado.id);
+        else    {
+            Swal.fire({
+            title: "Are you sure?",
+            text: "You won't be able to revert this!",
+            icon: "warning",
+            showCancelButton: true,
+            confirmButtonColor: "#3085d6",
+            cancelButtonColor: "#d33",
+            confirmButtonText: "Yes, delete it!"
+            }).then((result) => {
+                                if (result.isConfirmed) {
+                                    eliminarArticuloxId(productos,resultado.id);
+                                    generaPantalla("cardStock",contenedorStock, productos);        
+                                    Swal.fire({
+                                                title: "Deleted!",
+                                                text: "Your file has been deleted.",
+                                                icon: "success"
+                                            });
+                                }
+            });       
+            
         }
-        generaPantalla("cardStock",contenedorStock, productos);                                 
-    };       
-   guardarLocalStorage("productos", productos);
+    } 
+    guardarLocalStorage("productos", productos);
 }
 
 
 
 //resta un articulo del carrito
 function sumarArticulo(e, pantalla){
-    if (e.target.classList.contains("btn-mas")) {
+    if (obtieneTipoBoton(e.target.id) === "btn-mas") {
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         const resultadoCarrito = buscarProd(carrito,obtieneId(e.target.id))
         vender(carrito, resultado, resultadoCarrito);
@@ -517,19 +574,36 @@ function sumarArticulo(e, pantalla){
 function obtieneId (elementId){
     return (parseInt(elementId.split("-")[2]))
 }
+function obtieneTipoBoton (elementId){
+    return elementId.replace(/-\d+$/, '');
+}
 
 function verificarUsuario(user, pass){
     const userOK= "Mbarroso"
     const passOK = "1234"
-    return (userOK === user) && (passOK === pass);
+    if ((userOK === user) && (passOK === pass)){
+        return true;
+    }
+    else{
+        return false
+    }
 }
 function login(e){
     e.preventDefault()
     const form = document.getElementById('loginForm');
     const datos = new FormData(form);
-    const user = datos.get("usuario")
-    const pass = datos.get("password")
-    verificarUsuario(user, pass) && (window.location.href = "admin.html");
+    user = datos.get("usuario")
+    pass = datos.get("password")
+    if (verificarUsuario(user, pass)) {
+        window.location.href = "admin.html"
+    }
+    else{
+        Swal.fire({
+            icon: "error",
+            title: "verifique Usuario y contraseña",
+            text: "acceso denegado"
+    });
+    };
 }
 
 function detalleVentas(ventas){
@@ -652,7 +726,7 @@ function cargaPantallaError(pantalla, error) {
     const errorHtml =  
         `<div class="Errorventas" id="Errorventas">
             <div id="detalle-ventas" class="detalle-ventas">
-                <p>Se produjo un error en ${pantalla}. 
+                <p>Se produjo un error en ${pantalla}. ${error}
                 Por favor, intente nuevamente más tarde.</p>
             </div>
         </div>`;
@@ -686,9 +760,11 @@ function resumenVentas(ventas){
 
 
 function informarDescuentos() {
-    const modalElement = document.getElementById("descuentos");
-    if (modalElement) {
-        const modal = bootstrap.Modal.getOrCreateInstance(modalElement);
-        modal.show();
-    }
+    Toastify({
+                text: `Tenes descuentos disponibles`,
+                duration: 2000,
+                gravity: "top",
+                position: "center",
+                style: { background: "#198754"}
+                }).showToast();
 }
