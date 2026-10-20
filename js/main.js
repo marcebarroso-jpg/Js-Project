@@ -37,7 +37,7 @@ async function iniciarPagina() {
 
             productos = await cargarProductos();
             localStorage.setItem("productos",JSON.stringify(productos));
-            localStorage.setItem("carrito",JSON.stringify([]));s
+            localStorage.setItem("carrito",JSON.stringify([]));
             localStorage.setItem("ventas",JSON.stringify([]));
             localStorage.setItem("primerIngreso","true");
         }
@@ -54,22 +54,21 @@ async function iniciarPagina() {
 
 function iniciarPantalla() {
 
-    setTimeout(() => {informarDescuentos();}, 2000);
+    
 
     switch (pantalla) {
 
         case "ppal":
-
+            setTimeout(() => {informarDescuentos();}, 2000);
             contenedorCarrito =document.getElementById("contenedor-carrito");
             contenedorStock = document.getElementById("contenedor-stock");
             generaPantalla("cardStock",contenedorStock,productos);
-
             generaPantalla("carrito",contenedorCarrito,carrito);
             contenedorStock.addEventListener("click",sumarCarrito);
             contenedorCarrito.addEventListener("click",e => sumarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click",e => restarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click",e => eliminarProductoCarrito(e, pantalla));
-            contenedorCarrito.addEventListener("click",e => checkout(e, pantalla));
+            //contenedorCarrito.addEventListener("click",e => checkout(e, pantalla));
             break;
 
         case "admin":
@@ -100,7 +99,6 @@ function iniciarPantalla() {
             break;
 
         case "pass":
-
             zonaPass = document.getElementById("loginForm");
             zonaPass.addEventListener("submit", login);
             break;
