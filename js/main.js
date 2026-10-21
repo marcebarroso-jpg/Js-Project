@@ -1,6 +1,8 @@
+url = "./db/productos.json";
+
 async function cargarProductos() {
     try {
-        const respuesta = await fetch("../files/productos.json");
+        const respuesta = await fetch(url);
 
         if (!respuesta.ok) {
             throw new Error(`Error en la fetch: ${respuesta.status}`);
@@ -8,10 +10,10 @@ async function cargarProductos() {
 
         return await respuesta.json();
     }
-    catch (error) {
+    catch (err) {
         console.error(
             "hubo un problema al consultar productos",
-            error.message
+            err.message
         );
     }
 }
@@ -47,8 +49,8 @@ async function iniciarPagina() {
         ventas = JSON.parse(localStorage.getItem("ventas")) || [];
         iniciarPantalla();
 
-    } catch (error) {
-        console.error("Error al iniciar la aplicación:", error);
+    } catch (err) {
+        console.error("Error al iniciar la aplicación:", err);
     }
 }
 
@@ -59,7 +61,7 @@ function iniciarPantalla() {
     switch (pantalla) {
 
         case "ppal":
-            setTimeout(() => {informarDescuentos();}, 2000);
+            setTimeout(() => {obtenerCotiDolar();}, 2000);
             contenedorCarrito =document.getElementById("contenedor-carrito");
             contenedorStock = document.getElementById("contenedor-stock");
             generaPantalla("cardStock",contenedorStock,productos);
@@ -68,7 +70,6 @@ function iniciarPantalla() {
             contenedorCarrito.addEventListener("click",e => sumarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click",e => restarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click",e => eliminarProductoCarrito(e, pantalla));
-            //contenedorCarrito.addEventListener("click",e => checkout(e, pantalla));
             break;
 
         case "admin":

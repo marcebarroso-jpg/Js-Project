@@ -759,12 +759,20 @@ function resumenVentas(ventas){
 }
 
 
-function informarDescuentos() {
-    Toastify({
-                text: `Tenes descuentos disponibles`,
+function obtenerCotiDolar() {
+    const url = 'https://dolarapi.com/v1/dolares/blue';
+    fetch(url)
+        .then(response => response.json())
+        .then(data => {
+            Toastify({
+                text: `La cotización del dólar blue es: Compra: ${data.compra} - Venta: ${data.venta}`,
                 duration: 2000,
-                gravity: "top",
-                position: "center",
+                gravity: "bottom",
+                position: "left",
                 style: { background: "#198754"}
                 }).showToast();
+                })
+        .catch(error => {
+            console.error('Error al obtener la cotización del dólar:', error);
+        });
 }
