@@ -368,23 +368,6 @@ function checkout(){
                 </button>
             </aside>
         </div>
-        <div class="modal fade" id="modalCompra" tabindex="-1">
-            <div class="modal-dialog">
-                <div class="modal-content">      
-                    <div class="modal-header">
-                        <h5 class="modal-title">Compra confirmada</h5>
-                    </div>
-                    <div class="modal-body">
-                        Tu compra fue realizada exitosamente.
-                    </div>
-                    <div class="modal-footer">
-                        <button type="button" class="btn btn-primary" data-bs-dismiss="modal">
-                            Aceptar
-                        </button>
-                    </div>
-                </div>
-            </div>
-        </div>
         `;  
        // zonaPpal.replaceWith(pantalla);        
         const btnConfirmar = document.getElementById("btn-confirm");
@@ -395,11 +378,23 @@ function checkout(){
                 title: "Compra Confirmada",
                 text: "Su Compra fue Realizada",
             }).then((result) => {
-                    if (result.isConfirmed) window.location.href = "../index.html";
+                    if (result.isConfirmed) {
+                            btnConfirmar.id = "btn-volver"
+                            btnConfirmar.textContent = "volver al inicio";
+                    }
+                        //window.location.href = "../index.html";
                     });
         });
     
 }   
+
+
+function volverHome(e){
+    if (e.target.id === "btn-volver"){
+        window.location.href = "../index.html";
+    }    
+}
+
 
 function guardarVenta(carrito, datos, totalCarrito ){
     const venta = new Venta ;
@@ -473,6 +468,8 @@ function cargarActiculo(e, productos,contenedor){
     }
 } 
 
+
+
 //funcion para eliminar  un articulo
 function eliminarArticulo(e, productos){
     
@@ -515,7 +512,7 @@ function eliminarArticuloxId(productos,id){
 };
 
 
-function ActualizarArticulo(e){
+function actualizarArticulo(e){
     if (obtieneTipoBoton(e.target.id) === "btn-mas"){
         const resultado = buscarProd(productos, obtieneId(e.target.id))
         resultado.cantStock++ 
@@ -529,21 +526,21 @@ function ActualizarArticulo(e){
         }
         else    {
             Swal.fire({
-            title: "Are you sure?",
-            text: "You won't be able to revert this!",
+            title: "Seguro?",
             icon: "warning",
             showCancelButton: true,
-            confirmButtonColor: "#3085d6",
+            confirmButtonColor: "#3085d6",  
             cancelButtonColor: "#d33",
-            confirmButtonText: "Yes, delete it!"
+            confirmButtonText: "Si!",
+            cancelButtonText: "No"
             }).then((result) => {
                                 if (result.isConfirmed) {
                                     eliminarArticuloxId(productos,resultado.id);
                                     generaPantalla("cardStock",contenedorStock, productos);        
                                     Swal.fire({
-                                                title: "Deleted!",
-                                                text: "Your file has been deleted.",
-                                                icon: "success"
+                                            title: "Borrado!",
+                                            text: "Su producto ha sido borrado.",
+                                            icon: "success"
                                             });
                                 }
             });       
@@ -759,6 +756,7 @@ function resumenVentas(ventas){
 }
 
 
+/*
 function obtenerCotiDolar() {
     const url = 'https://dolarapi.com/v1/dolares/blue';
     fetch(url)
@@ -775,4 +773,57 @@ function obtenerCotiDolar() {
         .catch(error => {
             console.error('Error al obtener la cotización del dólar:', error);
         });
+}
+
+*/
+function alertaDescuentos (){
+    Toastify({
+                text: `Aprobechas los descuentos que tenemos para ti`,
+                duration: 2000,
+                gravity: "top",
+                position: "center",
+                style: { background: "#198754"}
+                }).showToast();
+}
+
+
+async function cargarProductos() {
+    url = "./db/productos.json";
+    try {
+        const respuesta = await fetch(url);
+
+        if (!respuesta.ok) {
+            throw new Error(`Error en la fetch: ${respuesta.status}`);
+        }
+
+        return await respuesta.json();
+    }
+    catch (err) {
+        console.error(
+            "hubo un problema al consultar productos",
+            err.message
+        );
+    }
+}
+
+async function iniciarPagina() {
+    try {
+
+        if (localStorage.getItem("primerIngreso") === "false" || !localStorage.getItem("primerIngreso")) {
+
+            productos = await cargarProductos();
+            localStorage.setItem("productos",JSON.stringify(productos));
+            localStorage.setItem("carrito",JSON.stringify([]));
+            localStorage.setItem("ventas",JSON.stringify([]));
+            localStorage.setItem("primerIngreso","true");
+        }
+
+        productos = JSON.parse(localStorage.getItem("productos"));
+        carrito = JSON.parse(localStorage.getItem("carrito")) || [];
+        ventas = JSON.parse(localStorage.getItem("ventas")) || [];
+        iniciarPantalla();
+
+    } catch (err) {
+        console.error("Error al iniciar la aplicación:", err);
+    }
 }

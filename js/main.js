@@ -1,22 +1,3 @@
-url = "./db/productos.json";
-
-async function cargarProductos() {
-    try {
-        const respuesta = await fetch(url);
-
-        if (!respuesta.ok) {
-            throw new Error(`Error en la fetch: ${respuesta.status}`);
-        }
-
-        return await respuesta.json();
-    }
-    catch (err) {
-        console.error(
-            "hubo un problema al consultar productos",
-            err.message
-        );
-    }
-}
 
 let productos = [];
 let carrito = [];
@@ -32,27 +13,7 @@ let btnconfirmar = "";
 
 pantalla = document.body.id;
 
-async function iniciarPagina() {
-    try {
 
-        if (localStorage.getItem("primerIngreso") === "false" || !localStorage.getItem("primerIngreso")) {
-
-            productos = await cargarProductos();
-            localStorage.setItem("productos",JSON.stringify(productos));
-            localStorage.setItem("carrito",JSON.stringify([]));
-            localStorage.setItem("ventas",JSON.stringify([]));
-            localStorage.setItem("primerIngreso","true");
-        }
-
-        productos = JSON.parse(localStorage.getItem("productos"));
-        carrito = JSON.parse(localStorage.getItem("carrito")) || [];
-        ventas = JSON.parse(localStorage.getItem("ventas")) || [];
-        iniciarPantalla();
-
-    } catch (err) {
-        console.error("Error al iniciar la aplicación:", err);
-    }
-}
 
 function iniciarPantalla() {
 
@@ -61,7 +22,7 @@ function iniciarPantalla() {
     switch (pantalla) {
 
         case "ppal":
-            setTimeout(() => {obtenerCotiDolar();}, 2000);
+            setTimeout(() => {alertaDescuentos();}, 2000);
             contenedorCarrito =document.getElementById("contenedor-carrito");
             contenedorStock = document.getElementById("contenedor-stock");
             generaPantalla("cardStock",contenedorStock,productos);
@@ -80,7 +41,7 @@ function iniciarPantalla() {
 
             generaPantalla("cardStock",contenedorStock,productos);
             contenedorStock.addEventListener("click", e => eliminarArticulo(e, productos));
-            contenedorStock.addEventListener("click", ActualizarArticulo);
+            contenedorStock.addEventListener("click", actualizarArticulo);
             btnAgregar.addEventListener("click", e => cargarActiculo(e, productos, contenedorStock));
             resumenVentas(ventas);
             break;
@@ -96,7 +57,7 @@ function iniciarPantalla() {
             contenedorCarrito.addEventListener("click", e => restarArticulo(e, pantalla));
             contenedorCarrito.addEventListener("click", e => eliminarProductoCarrito(e, pantalla));
             zonaForm.addEventListener('submit', validarCheckOut);
-            //zonaPpal.addEventListener("click", checkout);
+            zonaPpal.addEventListener("click", volverHome);
             break;
 
         case "pass":
