@@ -362,38 +362,32 @@ function checkout(){
                 <div class="totales total-final">
                     <span>Total</span>
                     <span> $ ${totalCarrito}</span>
-                </div>  
-                <button type="button" class="btn btn-primary btn-final" id="btn-confirm">
-                    Confirmar compra
-                </button>
+                </div>
+                <div class="boton" id="boton-confirmar">
+                     <button type="button" class="btn btn-primary btn-final" id="btn-confirm">
+                        Confirmar compra
+                    </button>
+                </div>
             </aside>
         </div>
-        `;  
-       // zonaPpal.replaceWith(pantalla);        
-        const btnConfirmar = document.getElementById("btn-confirm");
-        btnConfirmar.addEventListener("click", () => {
-            guardarVenta(carrito,datos,totalCarrito);
-            Swal.fire({
-                icon: "success",
-                title: "Compra Confirmada",
-                text: "Su Compra fue Realizada",
-            }).then((result) => {
-                    if (result.isConfirmed) {
-                            btnConfirmar.id = "btn-volver"
-                            btnConfirmar.textContent = "volver al inicio";
-                    }
-                        //window.location.href = "../index.html";
-                    });
+        `;
+        const btnConfirmar = document.getElementById("boton-confirmar");
+        btnConfirmar.addEventListener("click", (e) => {
+            if (e.target.id === "btn-confirm") {
+                guardarVenta(carrito,datos,totalCarrito);
+                Swal.fire({
+                    icon: "success",
+                    title: "Compra Confirmada",
+                    text: "Su Compra fue Realizada",
+                }).then((result) => {
+                        if (result.isConfirmed) {
+                            btnConfirmar.innerHTML = `<a class="btn btn-primary btn-volver" id="btn-volver" href="../index.html">Volver al inicio</a>`;
+                        }
+                        })
+            }
         });
-    
 }   
 
-
-function volverHome(e){
-    if (e.target.id === "btn-volver"){
-        window.location.href = "../index.html";
-    }    
-}
 
 
 function guardarVenta(carrito, datos, totalCarrito ){
@@ -756,29 +750,10 @@ function resumenVentas(ventas){
 }
 
 
-/*
-function obtenerCotiDolar() {
-    const url = 'https://dolarapi.com/v1/dolares/blue';
-    fetch(url)
-        .then(response => response.json())
-        .then(data => {
-            Toastify({
-                text: `La cotización del dólar blue es: Compra: ${data.compra} - Venta: ${data.venta}`,
-                duration: 2000,
-                gravity: "bottom",
-                position: "left",
-                style: { background: "#198754"}
-                }).showToast();
-                })
-        .catch(error => {
-            console.error('Error al obtener la cotización del dólar:', error);
-        });
-}
 
-*/
 function alertaDescuentos (){
     Toastify({
-                text: `Aprobechas los descuentos que tenemos para ti`,
+                text: `Mirá los descuentos que tenemos para vos!`,
                 duration: 2000,
                 gravity: "top",
                 position: "center",
@@ -825,5 +800,56 @@ async function iniciarPagina() {
 
     } catch (err) {
         console.error("Error al iniciar la aplicación:", err);
+    }
+}
+
+function iniciarPantalla() {
+
+    
+
+    switch (pantalla) {
+
+        case "ppal":
+            setTimeout(() => {alertaDescuentos();}, 2000);
+            contenedorCarrito =document.getElementById("contenedor-carrito");
+            contenedorStock = document.getElementById("contenedor-stock");
+            generaPantalla("cardStock",contenedorStock,productos);
+            generaPantalla("carrito",contenedorCarrito,carrito);
+            contenedorStock.addEventListener("click",sumarCarrito);
+            contenedorCarrito.addEventListener("click",e => sumarArticulo(e, pantalla));
+            contenedorCarrito.addEventListener("click",e => restarArticulo(e, pantalla));
+            contenedorCarrito.addEventListener("click",e => eliminarProductoCarrito(e, pantalla));
+            break;
+
+        case "admin":
+
+            btnAgregar = document.getElementById("btn-agregar");
+            contenedorStock = document.getElementById("contenedor-stock");
+            contenedorAdminProd = document.getElementById("adminProd");
+
+            generaPantalla("cardStock",contenedorStock,productos);
+            contenedorStock.addEventListener("click", e => eliminarArticulo(e, productos));
+            contenedorStock.addEventListener("click", actualizarArticulo);
+            btnAgregar.addEventListener("click", e => cargarActiculo(e, productos, contenedorStock));
+            resumenVentas(ventas);
+            break;
+
+        case "checkout":
+
+            contenedorCarrito = document.getElementById("contenedor-carrito");
+            zonaForm = document.getElementById("zona-form");
+            zonaPpal = document.getElementById("ppal-checkout");
+
+            generaPantalla("carrito",contenedorCarrito,carrito);
+            contenedorCarrito.addEventListener("click", e => sumarArticulo(e, pantalla));
+            contenedorCarrito.addEventListener("click", e => restarArticulo(e, pantalla));
+            contenedorCarrito.addEventListener("click", e => eliminarProductoCarrito(e, pantalla));
+            zonaForm.addEventListener('submit', validarCheckOut);
+            break;
+
+        case "pass":
+            zonaPass = document.getElementById("loginForm");
+            zonaPass.addEventListener("submit", login);
+            break;
     }
 }
