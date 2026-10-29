@@ -405,20 +405,9 @@ function guardarVenta(carrito, datos, totalCarrito ){
     venta.mpago = datos.get("mpago");
     venta.total = totalCarrito;
     ventas.push(venta);
-    carrito.splice(0, carrito.length);
-    guardarLocalStorage("carrito", carrito)
+    carrito = [];
+    localStorage.removeItem("carrito");
     guardarLocalStorage("ventas", ventas);
-}
-
-// alta de un nuevo producto en stock
-function altaProducto(nombre, cantStock, precio){
-    const producto = new Producto
-    producto.id= producto.nextId()
-    producto.nombre= nombre;
-    producto.cantStock= parseInt(cantStock);
-    producto.precio= parseInt(precio);
-    productos.push(producto);
-    guardarLocalStorage("productos", productos);
 }
 
 //aca va la funcion genere pantalla stock
